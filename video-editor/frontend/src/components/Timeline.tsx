@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useEditorStore } from '../store/editorStore';
-import { exportClipAsMp4 } from '../utils/exportVideo';
+import { exportVideoWithAudio } from '../utils/exportVideo';
 
 const PIXELS_PER_SECOND = 60;
 
@@ -28,6 +28,7 @@ export default function Timeline() {
   const [exportError, setExportError] = useState<string | null>(null);
 
   const selectedClip = clips.find((clip) => clip.id === selectedClipId);
+  const backgroundAudio = audioClips[0];
 
   const handleExport = async () => {
     if (!selectedClip) return;
@@ -36,10 +37,11 @@ export default function Timeline() {
     setExportError(null);
 
     try {
-      const blob = await exportClipAsMp4(
+      const blob = await exportVideoWithAudio(
         selectedClip.url,
         selectedClip.start,
-        selectedClip.end
+        selectedClip.end,
+        backgroundAudio?.url
       );
 
       const downloadUrl = URL.createObjectURL(blob);
