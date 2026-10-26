@@ -6,6 +6,8 @@ const PIXELS_PER_SECOND = 60;
 
 export default function Timeline() {
   const clips = useEditorStore((state) => state.clips);
+  const audioClips = useEditorStore((state) => state.audioClips);
+  const textOverlays = useEditorStore((state) => state.textOverlays);
   const selectedClipId = useEditorStore((state) => state.selectedClipId);
   const playhead = useEditorStore((state) => state.playhead);
   const selectClip = useEditorStore((state) => state.selectClip);
@@ -13,6 +15,13 @@ export default function Timeline() {
   const trimClip = useEditorStore((state) => state.trimClip);
   const splitClipAtPlayhead = useEditorStore(
     (state) => state.splitClipAtPlayhead
+  );
+  const removeAudioClip = useEditorStore((state) => state.removeAudioClip);
+  const updateTextOverlay = useEditorStore(
+    (state) => state.updateTextOverlay
+  );
+  const removeTextOverlay = useEditorStore(
+    (state) => state.removeTextOverlay
   );
 
   const [exporting, setExporting] = useState(false);
@@ -59,27 +68,61 @@ export default function Timeline() {
           style={{ left: `${playhead * PIXELS_PER_SECOND}px` }}
         />
 
-        {clips.length === 0 && (
-          <p className="timeline-empty">Upload a video to add a clip</p>
-        )}
+        <div className="track">
+          <span className="track-label">Video</span>
 
-        {clips.map((clip) => {
-          const width = (clip.end - clip.start) * PIXELS_PER_SECOND;
-          const left = clip.start * PIXELS_PER_SECOND;
-
-          return (
+          {clips.map((clip) => (
             <button
               key={clip.id}
               className={`timeline-clip ${
                 clip.id === selectedClipId ? 'selected' : ''
               }`}
-              style={{ width: `${width}px`, left: `${left}px` }}
+              style={{
+                width: `${(clip.end - clip.start) * PIXELS_PER_SECOND}px`,
+                left: `${clip.start * PIXELS_PER_SECOND}px`,
+              }}
               onClick={() => selectClip(clip.id)}
             >
               {clip.name}
             </button>
-          );
-        })}
+          ))}
+        </div>
+
+        <div className="track">
+          <span className="track-label">Audio</span>
+
+          {audioClips.map((clip) => (
+            <div
+              key={clip.id}
+              className="timeline-clip audio"
+              style={{
+                width: `${(clip.end - clip.start) * PIXELS_PER_SECOND}px`,
+                left: `${clip.start * PIXELS_PER_SECOND}px`,
+              }}
+            >
+              {clip.name}
+              <button onClick={() => removeAudioClip(clip.id)}>×</button>
+            </div>
+          ))}
+        </div>
+
+        <div className="track">
+          <span className="track-label">Text</span>
+
+          {textOverlays.map((overlay) => (
+            <div
+              key={overlay.id}
+              className="timeline-clip text"
+              style={{
+                width: `${(overlay.end - overlay.start) * PIXELS_PER_SECOND}px`,
+                left: `${overlay.start * PIXELS_PER_SECOND}px`,
+              }}
+            >
+              {overlay.text}
+              <button onClick={() => removeTextOverlay(overlay.id)}>×</button>
+            </div>
+          ))}
+        </div>
       </div>
 
       {selectedClip && (
@@ -140,6 +183,52 @@ export default function Timeline() {
           </button>
 
           {exportError && <span className="error-text">{exportError}</span>}
+        </div>
+      )}
+
+      {textOverlays.length > 0 && (
+        <div className="text-controls">
+          <h3>Text Overlays</h3>
+
+          {textOverlays.map((overlay) => (
+            <div key={overlay.id} className="text-control-row">
+              <input
+                value={overlay.text}
+                onChange={(event) =>
+                  updateTextOverlay(overlay.id, { text: event.target.value })
+                }
+              />
+
+              <input
+                type="number"
+                step={0.1}
+                value={overlay.start}
+                onChange={(event) =>
+                  updateTextOverlay(overlay.id, {
+                    start: Number(event.target.value),
+                  })
+                }
+              />
+
+              <input
+                type="number"
+                step={0.1}
+                value={overlay.end}
+                onChange={(event) =>
+                  updateTextOverlay(overlay.id, {
+                    end: Number(event.target.value),
+                  })
+                }
+              />
+
+              <button
+                className="danger-button"
+                onClick={() => removeTextOverlay(overlay.id)}
+              >
+                Delete
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </section>
