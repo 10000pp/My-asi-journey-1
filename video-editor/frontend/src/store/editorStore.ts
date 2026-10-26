@@ -18,6 +18,7 @@ type EditorState = {
   selectClip: (id: string | null) => void;
   setPlayhead: (time: number) => void;
   trimClip: (id: string, start: number, end: number) => void;
+  splitClipAtPlayhead: () => void;
 };
 
 export const useEditorStore = create<EditorState>((set) => ({
@@ -49,4 +50,36 @@ export const useEditorStore = create<EditorState>((set) => ({
           : clip
       ),
     })),
+  splitClipAtPlayhead: () =>
+    set((state) => {
+      const clip = state.clips.find(
+        (item) => item.id === state.selectedClipId
+      );
+
+      if (!clip) return state;
+
+      const splitTime = state.playhead;
+
+      if (splitTime <= clip.start + 0.1 || splitTime >= clip.end - 0.1) {
+        return state;
+      }
+
+      const firstClip: EditorClip = {
+        ...clip,
+        end: splitTime,
+      };
+
+      const secondClip: EditorClip = {
+        ...clip,
+        id: crypto.randomUUID(),
+        start: splitTime,
+      };
+
+      return {
+        clips: state.clips.flatMap((item) =>
+          item.id === clip.id ? [firstClip, secondClip] : [item]
+        ),
+        selectedClipId: secondClip.id,
+      };
+    }),
 }));

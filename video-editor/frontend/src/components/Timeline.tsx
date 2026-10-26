@@ -9,6 +9,9 @@ export default function Timeline() {
   const selectClip = useEditorStore((state) => state.selectClip);
   const removeClip = useEditorStore((state) => state.removeClip);
   const trimClip = useEditorStore((state) => state.trimClip);
+  const splitClipAtPlayhead = useEditorStore(
+    (state) => state.splitClipAtPlayhead
+  );
 
   const selectedClip = clips.find((clip) => clip.id === selectedClipId);
 
@@ -85,6 +88,10 @@ export default function Timeline() {
               }
             />
           </label>
+
+          <button className="action-button" onClick={splitClipAtPlayhead}>
+            Split at Playhead
+          </button>
 
           <button
             className="danger-button"
